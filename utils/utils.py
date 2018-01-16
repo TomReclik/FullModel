@@ -1,4 +1,5 @@
 import os
+import xml.etree.ElementTree as ET
 import scipy.misc as misc
 import numpy as np
 import keras
@@ -254,21 +255,3 @@ class SEM_loader:
 
     def getLang(self):
         return self.lang
-
-def TrueNegatives(n_out,y_true,threshold):
-    """
-    Calculate the number of true negatives
-    Input:
-        n_out:      Output of the CNN (softmax)
-        y_true:     True labels
-        threshold:  Threshold above which to decide for the true case
-    """
-
-    n_out = n_out[:,0]
-    y_true = y_true[:,0]
-
-    y_pred = np.greater(n_out,threshold)
-
-    correct = np.logical_and(y_pred, y_true)
-
-    return y_true.shape[0]-np.count_nonzero(correct)

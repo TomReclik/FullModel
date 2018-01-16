@@ -3,10 +3,11 @@ from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 import InceptionV3
 import models
+from utils.utils import SEM_loader
 import numpy as np
 
 class classifier:
-    def __init__(self, weights_path, model, window_size):
+    def __init__(self, model, window_size, weights_path=None):
         self.models = ["InceptionV3", "EERACN"]
 
         if not model in self.models:
@@ -20,13 +21,13 @@ class classifier:
                             input_shape=[250,250,1],
                             pooling=None,
                             classes=self.NOC)
-            self.network.load_weights(weights_path)
-            self.window_size = window_size
         elif model == "EERACN":
             self.NOC = 4
             self.network = models.EERACN([window_size[0],window_size[1],1], self.NOC)
+
+        if weights_path!=None:
             self.network.load_weights(weights_path)
-            self.window_size = window_size
+        self.window_size = window_size
 
     def predict(self, SEM, centroids):
         """
@@ -77,28 +78,28 @@ class classifier:
         return y_pred
 
     def train(self,folder,lang,weights_path,batch_size=10,epochs=150,
-              validation_split=0.2,class_weight=None):
-        
+              validation_split=0.2,class_weight=None,dist=None):
+
         compressedLang = []
         for key,value in lang.iteritems():
             compressedLang.append(value)
         compressedLang = set(compressedLang)
         NOC = len(compressedLang)
 
-        if class_weight=None:
+        if class_weight==None:
             class_weight = {}
             for i in range(NOC):
                 class_weight[i] = 1
 
         print "Loading Data"
 
-        loader = utils.SEM_loader(self.window_size,folder)
+        loader = SEM_loader(self.window_size,folder)
 
         x_train, y_train, x_test, y_test = loader.getData(lang,0.2,dist=dist)
 
         optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 
-        network.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+        self.network.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
         callbacks = [
                 EarlyStopping(monitor='val_loss', patience=8, verbose=0),
@@ -111,3 +112,12 @@ class classifier:
         score = self.network.evaluate(x_test, y_test, batch_size=batch_size)
 
         print score
+
+class combined_classifier:
+    def __init__(self,settingsjson):
+        with open(settingsjson, 'r') as f:
+            settings = json.load(f)
+
+        self.networks = []
+        self.classes = []
+        for i in range(len(settings["Stages"])):
