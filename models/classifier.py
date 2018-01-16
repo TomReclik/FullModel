@@ -1,4 +1,6 @@
 import keras
+from keras.optimizers import Adam
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 import InceptionV3
 import models
 import numpy as np
@@ -73,3 +75,39 @@ class classifier:
         y_pred = self.network.predict(x)
 
         return y_pred
+
+    def train(self,folder,lang,weights_path,batch_size=10,epochs=150,
+              validation_split=0.2,class_weight=None):
+        
+        compressedLang = []
+        for key,value in lang.iteritems():
+            compressedLang.append(value)
+        compressedLang = set(compressedLang)
+        NOC = len(compressedLang)
+
+        if class_weight=None:
+            class_weight = {}
+            for i in range(NOC):
+                class_weight[i] = 1
+
+        print "Loading Data"
+
+        loader = utils.SEM_loader(self.window_size,folder)
+
+        x_train, y_train, x_test, y_test = loader.getData(lang,0.2,dist=dist)
+
+        optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+
+        network.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+
+        callbacks = [
+                EarlyStopping(monitor='val_loss', patience=8, verbose=0),
+                ModelCheckpoint(weights_path, monitor='val_loss', verbose=0,
+                save_best_only=True, save_weights_only=False, mode='auto', period=1)
+            ]
+        self.network.fit(x_train, y_train, batch_size=batch_size, epochs=epochs,
+                        callbacks=callbacks, validation_split=0.2, class_weight=class_weight)
+
+        score = self.network.evaluate(x_test, y_test, batch_size=batch_size)
+
+        print score

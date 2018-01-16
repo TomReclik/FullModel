@@ -1,0 +1,7 @@
+{"Stages":[
+  {"Model":"InceptionV3",
+   "Classes":["Inclusion"]},
+  {"Model":"EERACN",
+   "Classes":["Martensite","Interface","Notch","Boundary"]}
+  ]
+}
