@@ -1,7 +1,24 @@
-{"Stages":[
+{"ClassifierArchitecture":[
   {"Model":"InceptionV3",
-   "Classes":["Inclusion"]},
+   "Classes":["Inclusion"],
+   "WindowSize": [250,250]},
   {"Model":"EERACN",
-   "Classes":["Martensite","Interface","Notch","Boundary"]}
-  ]
+   "Classes":["Martensite","Interface","Notch","Boundary"],
+   "WindowSize": [50,50]}
+ ],
+ "Classes":["Inclusion","Martensite","Interface","Notch","Boundary"],
+ "Training":[
+   {"dist":{"Inclusion":383, 
+            "Notch":100, 
+            "Interface":100, 
+            "Martensite":100, 
+            "Boundary":100},
+    "class_weight": {"0":1,"1":1}},
+    {"dist":{"Notch":443, 
+             "Interface":788, 
+             "Martensite":692, 
+             "Boundary":115},
+     "class_weight": {"0":1,"1":1,"2":1,"3":1}}
+ ],
+ "TrainingDataFolder": "/home/tom/Data/LabeledDamages/"
 }

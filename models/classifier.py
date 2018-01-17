@@ -5,6 +5,7 @@ import InceptionV3
 import models
 from utils.utils import SEM_loader
 import numpy as np
+import json
 
 class classifier:
     def __init__(self, model, window_size, weights_path=None):
@@ -120,4 +121,75 @@ class combined_classifier:
 
         self.networks = []
         self.classes = []
-        for i in range(len(settings["Stages"])):
+        self.NOC = []
+        self.lang = []
+        self.window_size = []
+        self.model = []
+        self.all_classes = settings["Classes"]
+        self.weights_path = []
+        for i in range(len(settings["ClassifierArchitecture"])):
+            window_size = settings["ClassifierArchitecture"][i]["WindowSize"]
+            model = settings["ClassifierArchitecture"][i]["Model"]
+            network = classifier(model, window_size)
+            classes = settings["ClassifierArchitecture"][i]["Classes"]
+            lang = {}
+            for j in range(len(classes)):
+                lang[classes[j]] = j
+                
+            if i<len(settings["ClassifierArchitecture"])-1:
+                NOC = len(classes)+1
+                for c in self.all_classes:
+                    if not c in classes:
+                        lang[c] = len(classes)
+            else:
+                NOC = len(classes)
+            
+            self.model.append(model)
+            self.window_size.append(window_size)
+            self.networks.append(network)
+            self.classes.append(classes)
+            self.NOC.append(NOC)
+            self.lang.append(lang)
+            
+    def train(self,settingsjson):
+        with open(settingsjson, 'r') as f:
+            settings = json.load(f)
+        
+        folder = settings["TrainingDataFolder"]
+        for i in range(len(settings["Training"])):
+            print "Training ", i+1, " Network"
+            dist = settings["Training"][i]["dist"]
+            class_weight = settings["Training"][i]["class_weight"]
+            
+            weights_path = "/home/tom/FullModel/models/"  + self.model[i] + "_" +str(i) + ".hdf5"
+            self.weights_path.append(weights_path)
+            self.networks[i].train(folder,self.lang[i],weights_path,batch_size=10,epochs=150,
+                      validation_split=0.2,class_weight=None,dist=dist)
+                      
+                      
+            
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            

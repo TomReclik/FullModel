@@ -217,6 +217,10 @@ class SEM_loader:
             print y_test.shape
 
         else:
+            
+            x_tmp = []
+            y_tmp = []
+            
             A = 0
             for i in range(self.N):
                 ##
