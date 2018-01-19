@@ -173,7 +173,48 @@ class combined_classifier:
                 for c in remaining_classes:
                     lang[c] = max_key + 1
             
-            network = classifier(model, NOC, window_size, weights_path=weights_path)
+            network = class
+    #
+    # Combined classifier with modules executed seperately
+    #
+    
+    annotations = ["Not Classified" for i in range(len(centroids))]
+    
+    weights_path = "/home/tom/FullModel/models/InceptionV3_IncVsAll_NoInc.hdf5"
+    model = "InceptionV3"
+    window_size = [250,250]
+    
+    FirstStage = classifier(model,2, window_size,weights_path=weights_path)
+    y_pred = FirstStage.predict(SEM, centroids)
+    
+    not_inc = []
+    pos_not_inc = []
+    threshold = 0.7
+    for i in range(len(centroids)):
+        if y_pred[i][0]>threshold:
+            annotations[i] = "Inclusion"
+        else:
+            not_inc.append(centroids[i])
+            pos_not_inc.append(i)
+    
+    weights_path = "/home/tom/FullModel/models/EERACN_SecondStage.hdf5"
+    model = "EERACN"
+    window_size = [50,50]
+    
+    SecondStage = classifier(model,4, window_size,weights_path=weights_path)
+    y_pred = SecondStage.predict(SEM, not_inc)
+    
+    for i in range(len(not_inc)):
+        if y_pred[i][0]>threshold:
+            annotations[pos_not_inc[i]]="Martensite"
+        elif y_pred[i][1]>threshold:
+            annotations[pos_not_inc[i]]="Interface"
+        elif y_pred[i][2]>threshold:
+            annotations[pos_not_inc[i]]="Notch"
+        elif y_pred[i][3]>threshold:
+            annotations[pos_not_inc[i]]="Boundary"
+    
+    assert aifier(model, NOC, window_size, weights_path=weights_path)
             
             self.model.append(model)
             self.window_size.append(window_size)
@@ -214,7 +255,7 @@ class combined_classifier:
         for i in range(len(self.networks)):
             y_pred = self.networks[i].predict(SEM, centroids_tmp)
             inv_lang = {v: k for k,v in self.lang[i].iteritems()}
-            
+        
             ##
             ## If we aren't at the last network and none of the classes return 
             ## a probability greater than the threshold value the image will 
@@ -233,19 +274,25 @@ class combined_classifier:
             ## c[0][j] corresponds to the centroid being processed
             ## c[1][j] corresponds to the class of the image
             ##
+            assigned = []
+            assigned_centroids = []
             
             for j in range(c[0].shape[0]):
                 annotations[not_assigned[c[0][j]]] = inv_lang[c[1][j]]
+                assigned.append(not_assigned[c[0][j]])
+                assigned_centroids.append(centroids_tmp[c[0][j]])
                 
             ##
             ## Remove already assigned images
             ##
             
-            for j in range(c[0].shape[0]):
-                not_assigned.remove(not_assigned[c[0][j]])
-                centroids_tmp.remove(centroids_tmp[c[0][j]])
+            for a in assigned:
+                not_assigned.remove(a)
+            for ac in assigned_centroids:    
+                centroids_tmp.remove(ac)
                             
         return annotations
+        
             
 
 
