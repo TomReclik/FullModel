@@ -26,12 +26,11 @@ class Localizer:
 
         dbscan_dataset1 = cluster.DBSCAN(eps=self.eps, min_samples=self.min_samples, metric='euclidean').fit_predict(positions)
         centroids = np.zeros((len(set(dbscan_dataset1))-1,2))
+        
         for i in range(len(dbscan_dataset1)):
             if dbscan_dataset1[i]!=-1:
                 centroids[dbscan_dataset1[i]] = centroids[dbscan_dataset1[i]] + positions[i]
         for i in range(len(centroids)):
                 centroids[i] = centroids[i] / sum(dbscan_dataset1==i)
-
-
 
         return centroids

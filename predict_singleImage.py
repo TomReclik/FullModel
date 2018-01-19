@@ -40,7 +40,7 @@ weights_path = "/home/tom/FullModel/models/InceptionV3_IncVsAll_NoInc.hdf5"
 model = "InceptionV3"
 window_size = [250,250]
 
-FirstStage = classifier(model, window_size,weights_path=weights_path)
+FirstStage = classifier(model,2, window_size,weights_path=weights_path)
 y_pred = FirstStage.predict(SEM, centroids)
 
 not_inc = []
@@ -57,7 +57,7 @@ weights_path = "/home/tom/FullModel/models/EERACN_SecondStage.hdf5"
 model = "EERACN"
 window_size = [50,50]
 
-SecondStage = classifier(model, window_size,weights_path=weights_path)
+SecondStage = classifier(model,4, window_size,weights_path=weights_path)
 y_pred = SecondStage.predict(SEM, not_inc)
 
 for i in range(len(not_inc)):
