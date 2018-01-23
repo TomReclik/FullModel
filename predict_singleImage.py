@@ -71,4 +71,4 @@ for i in range(len(not_inc)):
         annotations[pos_not_inc[i]]="Boundary"
 
 
-plotBoxes(centroids, SEM, annotations=annotations, saveImg = True, saveImgPath=imgpath[:-4]+"_annotated.png")
+plotBoxes(centroids, SEM, annotations=None, saveImg = True, saveImgPath=imgpath[:-4]+"_annotated.png")
