@@ -20,7 +20,7 @@ class Localizer:
         pos = []
         for x in range(size_x):
             for y in range(size_y):
-                if(SEM[x,y]<=20):
+                if(SEM[x,y]<=self.theta):
                     pos.append((x,y))
         positions = np.array(pos)
 
