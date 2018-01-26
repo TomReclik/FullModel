@@ -15,7 +15,7 @@ folder = args.folder
 
 eps = 4
 min_samples = 20
-theta = 20
+theta = 5
 
 L = Localizer(eps, min_samples, theta)
 
@@ -25,7 +25,7 @@ cc = combined_classifier(settingsjson)
 for imgpath in os.listdir(folder):
     if imgpath.endswith(".png"):
         print "Processing", imgpath
-        SEM = scipy.misc.imread(imgpath,flatten=True)
+        SEM = scipy.misc.imread(os.path.join(folder,imgpath),flatten=True)
         centroids = L.predict(SEM)
         annotations = cc.predict(SEM,centroids)
     

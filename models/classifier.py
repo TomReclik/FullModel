@@ -6,6 +6,7 @@ import models
 from utils.utils import SEM_loader
 import numpy as np
 import json
+import math
 
 class classifier:
     def __init__(self, model, NOC, window_size, weights_path=None):
@@ -79,10 +80,10 @@ class classifier:
         x= []
 
         for i in range(len(centroids)):
-            x1 = int(centroids[i][0] - self.window_size[0]/2)
-            y1 = int(centroids[i][1] - self.window_size[1]/2)
-            x2 = int(centroids[i][0] + self.window_size[0]/2)
-            y2 = int(centroids[i][1] + self.window_size[1]/2)
+            x1 = math.floor(centroids[i][0] - self.window_size[0]/2)
+            y1 = math.floor(centroids[i][1] - self.window_size[1]/2)
+            x2 = math.floor(centroids[i][0] + self.window_size[0]/2)
+            y2 = math.floor(centroids[i][1] + self.window_size[1]/2)
 
             ##
             ## Catch the cases in which the extract would go
@@ -212,43 +213,44 @@ class combined_classifier:
         not_assigned = range(len(centroids_tmp))
         
         for i in range(len(self.networks)):
-            y_pred = self.networks[i].predict(SEM, centroids_tmp)
-            inv_lang = {v: k for k,v in self.lang[i].iteritems()}
-        
-            ##
-            ## If we aren't at the last network and none of the classes return 
-            ## a probability greater than the threshold value the image will 
-            ## be passed on to the next network. Therefore we remove the last 
-            ## column of y_pred if we are not in the last network 
-            ##
+            if len(centroids_tmp)>0:
+                y_pred = self.networks[i].predict(SEM, centroids_tmp)
+                inv_lang = {v: k for k,v in self.lang[i].iteritems()}
             
-            if i!=len(self.networks)-1:
-                y_shape = y_pred.shape
-                y_pred = y_pred[:,0:y_shape[1]-1]
+                ##
+                ## If we aren't at the last network and none of the classes return 
+                ## a probability greater than the threshold value the image will 
+                ## be passed on to the next network. Therefore we remove the last 
+                ## column of y_pred if we are not in the last network 
+                ##
                 
+                if i!=len(self.networks)-1:
+                    y_shape = y_pred.shape
+                    y_pred = y_pred[:,0:y_shape[1]-1]
+                    
+                    
+                c = np.where(y_pred>thresholds[i])
                 
-            c = np.where(y_pred>thresholds[i])
-            
-            ##
-            ## c[0][j] corresponds to the centroid being processed
-            ## c[1][j] corresponds to the class of the image
-            ##
-            assigned = []
-            assigned_centroids = []
-            
-            for j in range(c[0].shape[0]):
-                annotations[not_assigned[c[0][j]]] = inv_lang[c[1][j]]
-                assigned.append(not_assigned[c[0][j]])
-                assigned_centroids.append(centroids_tmp[c[0][j]])
+                ##
+                ## c[0][j] corresponds to the centroid being processed
+                ## c[1][j] corresponds to the class of the image
+                ##
+                assigned = []
+                assigned_centroids = []
                 
-            ##
-            ## Remove already assigned images
-            ##
-            
-            for a in assigned:
-                not_assigned.remove(a)
-            for ac in assigned_centroids:    
-                centroids_tmp.remove(ac)
+                for j in range(c[0].shape[0]):
+                    annotations[not_assigned[c[0][j]]] = inv_lang[c[1][j]]
+                    assigned.append(not_assigned[c[0][j]])
+                    assigned_centroids.append(centroids_tmp[c[0][j]])
+                    
+                ##
+                ## Remove already assigned images
+                ##
+                
+                for a in assigned:
+                    not_assigned.remove(a)
+                for ac in assigned_centroids:    
+                    centroids_tmp.remove(ac)
                             
         return annotations
         
